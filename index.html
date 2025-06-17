@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chatbot - Legacy Studio</title>
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; margin-top: 50px; }
+    #chat-container { width: 400px; border: 1px solid #ccc; padding: 16px; }
+    #chat-log { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 12px; }
+    #chat-log div {
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    #chat-log div[style*="left"] {
+      background-color: #f1f1f1;
+      text-align: left;
+    }
+    #chat-log div[style*="right"] {
+      background-color: #d1e7dd;
+      text-align: right;
+      align-self: flex-end;
+    }
+    #input-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    #chat-input {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+    }
+    #send-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    #minimize-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background-color: #f1f1f1;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-wrapper" style="position: relative;">
+  <div id="chat-container">
+    <div id="chat-log"></div>
+    <div id="input-container">
+      <input type="text" id="chat-input" placeholder="Type your message...">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</div>
+
+<button id="minimize-btn">Click here to chat</button>
+
+<script>
+let typingBubble;
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  appendMessage("You", message);
+  input.value = "";
+
+  const threadId = localStorage.getItem('legacybot_thread_id');
+
+  // Show typing bubble
+  typingBubble = document.createElement("div");
+  typingBubble.textContent = "LegacyBot is typing...";
+  typingBubble.style.textAlign = "right";
+  typingBubble.style.fontStyle = "italic";
+  typingBubble.style.color = "#666";
+  typingBubble.style.opacity = "0.7";
+  typingBubble.style.marginLeft = "auto";
+  document.getElementById("chat-log").appendChild(typingBubble);
+
+  try {
+    const response = await fetch("http://localhost:3000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, threadId })
+    });
+
+    const data = await response.json();
+    if (data.threadId) {
+      localStorage.setItem('legacybot_thread_id', data.threadId);
+    }
+
+    // Remove typing bubble and show real response
+    typingBubble.remove();
+    appendMessage("Bot", data.reply);
+  } catch (err) {
+    typingBubble.remove();
+    appendMessage("Bot", "Error connecting to assistant.");
+    console.error(err);
+  }
+}
+
+function appendMessage(sender, message) {
+  const log = document.getElementById("chat-log");
+  const entry = document.createElement("div");
+  const displaySender = sender === "Bot" ? "LegacyBot" : sender;
+  const alignment = sender === "You" ? "right" : "left";
+  entry.style.textAlign = alignment;
+  entry.innerHTML = `<strong>${displaySender}:</strong> ${message}`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+appendMessage("Bot", "Hi there! I'm LegacyBot from Legacy Studio Co., What can I help you with?");
+
+document.getElementById('chat-input').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    sendChat();
+  }
+});
+
+document.getElementById('send-btn').addEventListener('click', sendChat);
+
+const minimizeBtn = document.getElementById('minimize-btn');
+minimizeBtn.style.display = 'none'; // Start hidden
+
+minimizeBtn.addEventListener('click', () => {
+  document.getElementById('chat-wrapper').style.display = 'block';
+  minimizeBtn.style.display = 'none';
+});
+
+function minimizeChat() {
+  document.getElementById('chat-wrapper').style.display = 'none';
+  minimizeBtn.style.display = 'block';
+}
+
+document.getElementById('send-btn').addEventListener('click', sendChat);
+document.getElementById('chat-input').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    sendChat();
+  }
+});
+
+const topMinimizeIcon = document.createElement("button");
+topMinimizeIcon.textContent = "−";
+topMinimizeIcon.style.position = "absolute";
+topMinimizeIcon.style.top = "10px";
+topMinimizeIcon.style.right = "10px";
+topMinimizeIcon.style.background = "none";
+topMinimizeIcon.style.border = "none";
+topMinimizeIcon.style.cursor = "pointer";
+topMinimizeIcon.style.fontSize = "16px";
+document.getElementById('chat-wrapper').appendChild(topMinimizeIcon);
+
+topMinimizeIcon.addEventListener('click', minimizeChat);
+</script>
+
+</body>
+</html>
