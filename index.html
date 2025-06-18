@@ -61,12 +61,14 @@
 </head>
 <body>
 
-<div id="chat-wrapper" style="position: relative;">
-  <div id="chat-container">
-    <div id="chat-log"></div>
-    <div id="input-container">
-      <input type="text" id="chat-input" placeholder="Type your message...">
-      <button id="send-btn">Send</button>
+<div id="chat-box" style="position: fixed; bottom: 80px; right: 60px; z-index: 9999;">
+  <div id="chat-wrapper" style="position: relative;">
+    <div id="chat-container">
+      <div id="chat-log"></div>
+      <div id="input-container">
+        <input type="text" id="chat-input" placeholder="Type your message...">
+        <button id="send-btn">Send</button>
+      </div>
     </div>
   </div>
 </div>
@@ -144,20 +146,17 @@ const minimizeBtn = document.getElementById('minimize-btn');
 minimizeBtn.style.display = 'block'; // Start visible because chat is minimized
 
 minimizeBtn.addEventListener('click', () => {
-  document.getElementById('chat-wrapper').style.display = 'none';
-  minimizeBtn.style.display = 'block';
-  // Actually, per instructions, clicking minimizeBtn should open chat, so fix:
-  document.getElementById('chat-wrapper').style.display = 'block';
+  document.getElementById('chat-box').style.display = 'block';
   minimizeBtn.style.display = 'none';
 });
 
 function minimizeChat() {
-  document.getElementById('chat-wrapper').style.display = 'none';
+  document.getElementById('chat-box').style.display = 'none';
   minimizeBtn.style.display = 'block';
 }
 
 // Set initial state: chat minimized on load
-document.getElementById('chat-wrapper').style.display = 'none';
+document.getElementById('chat-box').style.display = 'none';
 minimizeBtn.style.display = 'block';
 
 document.getElementById('send-btn').addEventListener('click', sendChat);
