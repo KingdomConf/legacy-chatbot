@@ -1,37 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChatBot</title>
-  <style>
-    /* Other styles */
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { OpenAI } from 'openai';
 
-    #minimize-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 16px;
-      background-color: #f1f1f1;
-      border: 1px solid #ccc;
-      border-radius: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      display: none;
-      font-size: 14px;
-      text-align: center;
-      writing-mode: horizontal-tb;
-      transform: none;
-      height: auto;
-      width: auto;
+dotenv.config();
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const assistantId = process.env.ASSISTANT_ID;
+
+const threadMap = new Map();
+
+app.post('/api/chat', async (req, res) => {
+  const { message, threadId } = req.body;
+
+  try {
+    let thread = threadId;
+
+    if (!thread) {
+      const newThread = await openai.beta.threads.create();
+      thread = newThread.id;
     }
 
-    /* Other styles */
-  </style>
-</head>
-<body>
-  <!-- Body content -->
-  <button id="minimize-btn">Click here to chat</button>
-</body>
-</html>
+    await openai.beta.threads.messages.create(thread, {
+      role: 'user',
+      content: message
+    });
+
+    const run = await openai.beta.threads.runs.create(thread, {
+      assistant_id: assistantId
+    });
+
+    let runStatus = run.status;
+    while (runStatus !== 'completed' && runStatus !== 'failed') {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const currentRun = await openai.beta.threads.runs.retrieve(thread, run.id);
+      runStatus = currentRun.status;
+    }
+
+    const messages = await openai.beta.threads.messages.list(thread);
+    const lastMessage = messages.data.find(m => m.role === 'assistant');
+
+    res.json({
+      reply: lastMessage?.content?.[0]?.text?.value || 'No reply received.',
+      threadId: thread
+    });
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ reply: 'An error occurred.', threadId: null });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
