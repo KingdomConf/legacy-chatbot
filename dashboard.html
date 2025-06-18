@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegacyBot Dashboard - Conversation Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .conversations-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .conversation-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .conversation-item:hover {
+            background: #f8f9fa;
+        }
+
+        .conversation-item.unread {
+            background: #f0f8ff;
+            border-left: 4px solid #667eea;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .conversation-contact {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .conversation-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .conversation-preview {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+            margin-top: 10px;
+        }
+
+        .lead-quality {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .lead-quality.high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .lead-quality.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .lead-quality.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .message-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.assistant .message-bubble {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.user .message-bubble {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .conversation-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LegacyBot Dashboard</h1>
+        <p>Legacy Studio Co. - Conversation Manager</p>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalConversations">0</div>
+                <div class="stat-label">Total Conversations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeConversations">0</div>
+                <div class="stat-label">Active Conversations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedConversations">0</div>
+                <div class="stat-label">Completed Conversations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="highQualityLeads">0</div>
+                <div class="stat-label">High Quality Leads</div>
+            </div>
+        </div>
+
+        <div class="conversations-section">
+            <div class="section-header">
+                <h2>Recent Conversations</h2>
+                <div class="filters">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <select class="filter-select" id="qualityFilter">
+                        <option value="all">All Quality</option>
+                        <option value="high">High Quality</option>
+                        <option value="medium">Medium Quality</option>
+                        <option value="low">Low Quality</option>
+                    </select>
+                    <button class="filter-select" onclick="loadConversations()">Refresh</button>
+                </div>
+            </div>
+            <div class="conversation-list" id="conversationList">
+                <div class="loading">Loading conversations...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversation Detail Modal -->
+    <div class="modal" id="conversationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Conversation Details</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Conversation details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, query, orderBy, onSnapshot, where, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration - replace with your config
+        const firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "your-sender-id",
+            appId: "your-app-id"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let conversations = [];
+
+        // Load conversations from Firebase
+        async function loadConversations() {
+            try {
+                const conversationsRef = collection(db, 'chat_conversations');
+                const q = query(conversationsRef, orderBy('createdAt', 'desc'));
+                
+                                    onSnapshot(q, (snapshot) => {
+                    conversations = [];
+                    snapshot.forEach((doc) => {
+                        conversations.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    
+                    updateStats();
+                    displayConversations();
+                });
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                document.getElementById('conversationList').innerHTML = 
+                    '<div class="no-data">Error loading conversations. Check console for details.</div>';
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = conversations.length;
+            const active = conversations.filter(c => c.status === 'active').length;
+            const completed = conversations.filter(c => c.status === 'completed').length;
+            const highQuality = conversations.filter(c => c.summary?.leadQuality === 'high').length;
+
+            document.getElementById('totalConversations').textContent = total;
+            document.getElementById('activeConversations').textContent = active;
+            document.getElementById('completedConversations').textContent = completed;
+            document.getElementById('highQualityLeads').textContent = highQuality;
+        }
+
+        // Display conversations in the list
+        function displayConversations() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const qualityFilter = document.getElementById('qualityFilter').value;
+            
+            let filteredConversations = conversations;
+            
+            if (statusFilter !== 'all') {
+                filteredConversations = filteredConversations.filter(c => c.status === statusFilter);
+            }
+            
+            if (qualityFilter !== 'all') {
+                filteredConversations = filteredConversations.filter(c => c.summary?.leadQuality === qualityFilter);
+            }
+
+            const conversationList = document.getElementById('conversationList');
+            
+            if (filteredConversations.length === 0) {
+                conversationList.innerHTML = '<div class="no-data">No conversations found.</div>';
+                return;
+            }
+
+            conversationList.innerHTML = filteredConversations.map(conversation => {
+                const userInfo = conversation.userInfo || {};
+                const summary = conversation.summary || {};
+                const lastMessage = conversation.messages?.slice(-1)[0];
+                const createdAt = conversation.createdAt?.toDate?.() || new Date(conversation.createdAt);
+                
+                return `
+                    <div class="conversation-item ${conversation.status === 'completed' ? '' : 'unread'}" 
+                         onclick="openConversationModal('${conversation.id}')">
+                        <div class="conversation-header">
+                            <div class="conversation-info">
+                                <div class="conversation-name">
+                                    ${userInfo.name || 'Anonymous User'}
+                                </div>
+                                <div class="conversation-contact">
+                                    ${userInfo.email || ''} ${userInfo.phone || ''}
+                                </div>
+                                <div class="conversation-time">
+                                    ${formatDate(createdAt)} • ${conversation.messages?.length || 0} messages
+                                </div>
+                            </div>
+                            <div>
+                                <span class="lead-quality ${summary.leadQuality || 'low'}">
+                                    ${summary.leadQuality || 'low'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="conversation-preview">
+                            ${lastMessage?.content?.substring(0, 150) || 'No messages yet'}...
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open conversation detail modal
+        window.openConversationModal = async function(conversationId) {
+            try {
+                const conversation = conversations.find(c => c.id === conversationId);
+                if (!conversation) return;
+
+                const modal = document.getElementById('conversationModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+
+                const userInfo = conversation.userInfo || {};
+                const summary = conversation.summary || {};
+                const messages = conversation.messages || [];
+
+                modalTitle.textContent = `Conversation with ${userInfo.name || 'Anonymous'}`;
+
+                modalBody.innerHTML = `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>Contact Information</h4>
+                        <p><strong>Name:</strong> ${userInfo.name || 'Not provided'}</p>
+                        <p><strong>Email:</strong> ${userInfo.email || 'Not provided'}</p>
+                        <p><strong>Phone:</strong> ${userInfo.phone || 'Not provided'}</p>
+                        <p><strong>Company:</strong> ${userInfo.company || 'Not provided'}</p>
+                        <p><strong>Lead Quality:</strong> <span class="lead-quality ${summary.leadQuality || 'low'}">${summary.leadQuality || 'low'}</span></p>
+                        <p><strong>Topics:</strong> ${summary.topics?.join(', ') || 'None identified'}</p>
+                        <p><strong>Status:</strong> ${conversation.status || 'active'}</p>
+                    </div>
+                    
+                    <h4>Conversation Thread</h4>
+                    <div class="message-thread">
+                        ${messages.map(message => `
+                            <div class="message ${message.role}">
+                                <div class="message-bubble">
+                                    ${message.content}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                modal.classList.add('active');
+            } catch (error) {
+                console.error('Error opening conversation modal:', error);
+            }
+        };
+
+        // Close modal
+        window.closeModal = function() {
+            document.getElementById('conversationModal').classList.remove('active');
+        };
+
+        // Format date for display
+        function formatDate(date) {
+            if (!date) return 'Unknown';
+            return new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        // Event listeners
+        document.getElementById('statusFilter').addEventListener('change', displayConversations);
+        document.getElementById('qualityFilter').addEventListener('change', displayConversations);
+
+        // Close modal when clicking outside
+        document.getElementById('conversationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Make loadConversations globally available
+        window.loadConversations = loadConversations;
+
+        // Initialize
+        loadConversations();
+    </script>
+</body>
+</html>
