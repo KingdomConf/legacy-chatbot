@@ -3,6 +3,7 @@ import cors from 'cors';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import admin from 'firebase-admin';
+import fs from 'fs';
 import { 
     saveConversation, 
     updateConversation, 
@@ -28,6 +29,16 @@ admin.initializeApp({
 });
 
 const app = express();
+
+app.get('/logs', (req, res) => {
+    try {
+        const logs = fs.readFileSync('chats.log', 'utf-8');
+        res.type('text/plain').send(logs);
+    } catch (err) {
+        res.status(500).send('No log file found.');
+    }
+});
+
 const port = process.env.PORT || 3000;
 
 // Initialize OpenAI client
@@ -162,6 +173,15 @@ app.post('/api/chat', async (req, res) => {
                         });
                     }
                 }
+
+                // Log chat to local file
+                const chatLog = {
+                    timestamp: new Date().toISOString(),
+                    user: message,
+                    assistant: responseText,
+                    threadId: currentThreadId,
+                };
+                fs.appendFileSync('chats.log', JSON.stringify(chatLog) + '\n');
                 
                 res.json({
                     success: true,
