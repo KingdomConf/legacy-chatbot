@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>AI Chatbot - Legacy Studio</title>
   <style>
-    body { font-family: sans-serif; display: flex; justify-content: center; margin-top: 50px; }
-    #chat-container { width: 400px; border: 1px solid #ccc; padding: 16px; }
+    body { font-family: sans-serif; display: flex; justify-content: center; margin-top: 50px; background-color: white; }
+    #chat-container { width: 400px; border: 1px solid #ccc; padding: 16px; background-color: white; }
     #chat-log { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 12px; }
     #chat-log div {
       margin-bottom: 8px;
@@ -141,9 +141,12 @@ document.getElementById('chat-input').addEventListener('keydown', function(event
 document.getElementById('send-btn').addEventListener('click', sendChat);
 
 const minimizeBtn = document.getElementById('minimize-btn');
-minimizeBtn.style.display = 'none'; // Start hidden
+minimizeBtn.style.display = 'block'; // Start visible because chat is minimized
 
 minimizeBtn.addEventListener('click', () => {
+  document.getElementById('chat-wrapper').style.display = 'none';
+  minimizeBtn.style.display = 'block';
+  // Actually, per instructions, clicking minimizeBtn should open chat, so fix:
   document.getElementById('chat-wrapper').style.display = 'block';
   minimizeBtn.style.display = 'none';
 });
@@ -152,6 +155,10 @@ function minimizeChat() {
   document.getElementById('chat-wrapper').style.display = 'none';
   minimizeBtn.style.display = 'block';
 }
+
+// Set initial state: chat minimized on load
+document.getElementById('chat-wrapper').style.display = 'none';
+minimizeBtn.style.display = 'block';
 
 document.getElementById('send-btn').addEventListener('click', sendChat);
 document.getElementById('chat-input').addEventListener('keydown', function(event) {
