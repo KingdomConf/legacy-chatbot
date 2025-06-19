@@ -13,8 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: transparent; /* Transparent for embedding */
-            height: 100vh;
+            background: transparent;
             margin: 0;
             padding: 0;
         }
@@ -43,7 +42,7 @@
         }
 
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #210e31 0%, #431144 100%);
             color: white;
             padding: 20px;
             display: flex;
@@ -204,33 +203,28 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             border: none;
             border-radius: 50%;
+            width: 50px;
+            height: 50px;
             cursor: pointer;
             display: none;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s ease;
             z-index: 1000;
         }
 
-        .chat-toggle-btn.show {
-            display: flex;
+        .chat-toggle-btn svg {
+            fill: white;
+            width: 24px;
+            height: 24px;
         }
 
         .chat-toggle-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .chat-toggle-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
+            background: #5a6fd8;
         }
 
         @keyframes fadeIn {
@@ -247,12 +241,16 @@
             .chat-container {
                 width: calc(100vw - 40px);
                 height: calc(100vh - 40px);
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
+                border-radius: 0;
                 max-width: none;
             }
             
+            .chat-container.minimized {
+                display: none !important;
+                visibility: hidden;
+                opacity: 0;
+            }
+
             .chat-toggle-btn {
                 bottom: 20px;
                 right: 20px;
@@ -285,8 +283,6 @@
             </button>
         </div>
     </div>
-
-    <!-- Floating toggle button (shows when minimized) -->
     <button class="chat-toggle-btn" id="chatToggleBtn">
         <svg viewBox="0 0 24 24">
             <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
@@ -296,15 +292,16 @@
     <script>
         class LegacyBot {
             constructor() {
-                // Your API endpoint on Render.com backend
+                // API endpoint is on Render.com backend
                 this.apiUrl = 'https://legacy-bot-osdp.onrender.com/api/chat';
                 this.threadId = localStorage.getItem('legacybot-thread-id');
-                this.isMinimized = true; // Start minimized
+                this.isMinimized = true;
                 this.isTyping = false;
                 
                 this.initializeElements();
                 this.bindEventListeners();
                 this.initializeMinimizedState();
+                this.scrollToBottom();
             }
 
             initializeElements() {
@@ -315,6 +312,7 @@
                 this.sendBtn = document.getElementById('sendBtn');
                 this.minimizeBtn = document.getElementById('minimizeBtn');
                 this.chatToggleBtn = document.getElementById('chatToggleBtn');
+                this.chatToggleBtn.style.display = 'none';
             }
 
             bindEventListeners() {
@@ -336,22 +334,18 @@
             }
 
             initializeMinimizedState() {
-                // Start in minimized state
                 this.chatContainer.classList.add('minimized');
-                this.chatToggleBtn.classList.add('show');
+                this.chatToggleBtn.style.display = 'flex';
             }
 
             toggleMinimize() {
                 this.isMinimized = !this.isMinimized;
-                
                 if (this.isMinimized) {
-                    // Hide chat container and show toggle button
                     this.chatContainer.classList.add('minimized');
-                    this.chatToggleBtn.classList.add('show');
+                    this.chatToggleBtn.style.display = 'flex';
                 } else {
-                    // Show chat container and hide toggle button
                     this.chatContainer.classList.remove('minimized');
-                    this.chatToggleBtn.classList.remove('show');
+                    this.chatToggleBtn.style.display = 'none';
                     this.messageInput.focus();
                     this.scrollToBottom();
                 }
