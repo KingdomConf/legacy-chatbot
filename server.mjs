@@ -2,31 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import admin from 'firebase-admin';
 import fs from 'fs';
-import { 
-    saveConversation, 
-    updateConversation, 
-    completeConversation,
-    getConversationByThreadId,
-    shouldCompleteConversation,
-    extractUserInfo 
-} from './firebase-config.mjs';
+// TODO: Replace this with new backend logic for conversations
 
 // Load environment variables
 dotenv.config();
 
-// Parse Firebase private key directly from .env
-const firebasePrivateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-
-// Initialize Firebase Admin SDK with parsed private key
-admin.initializeApp({
-    credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: firebasePrivateKey,
-    }),
-});
+// TODO: Replace this with new backend logic for conversations
 
 const app = express();
 
@@ -88,29 +70,7 @@ app.post('/api/chat', async (req, res) => {
             isNewConversation = true;
         }
 
-        // Get or create conversation record in Firebase
-        let conversation = await getConversationByThreadId(currentThreadId);
-        
-        if (!conversation && isNewConversation) {
-            // Create new conversation record
-            conversationId = await saveConversation({
-                threadId: currentThreadId,
-                messages: [],
-                userInfo: {},
-                status: 'active',
-                startTime: new Date()
-            });
-            
-            conversation = {
-                id: conversationId,
-                threadId: currentThreadId,
-                messages: [],
-                userInfo: {},
-                status: 'active'
-            };
-        } else if (conversation) {
-            conversationId = conversation.id;
-        }
+        // TODO: Replace this with new backend logic for conversations
 
         // Add the user's message to the thread
         await openai.beta.threads.messages.create(currentThreadId, {
@@ -151,28 +111,7 @@ app.post('/api/chat', async (req, res) => {
                     timestamp: new Date(msg.created_at * 1000)
                 }));
 
-                // Extract user information
-                const userInfo = extractUserInfo(conversationMessages);
-                
-                // Update conversation in Firebase
-                if (conversationId) {
-                    await updateConversation(conversationId, {
-                        messages: conversationMessages,
-                        userInfo: userInfo,
-                        lastActivity: new Date(),
-                        messageCount: conversationMessages.length
-                    });
-
-                    // Check if conversation should be completed
-                    if (shouldCompleteConversation(conversationMessages)) {
-                        await completeConversation(conversationId, {
-                            messages: conversationMessages,
-                            userInfo: userInfo,
-                            summary: generateConversationSummary(conversationMessages, userInfo),
-                            finalMessageCount: conversationMessages.length
-                        });
-                    }
-                }
+                // TODO: Replace this with new backend logic for conversations
 
                 // Log chat to local file
                 const chatLog = {
@@ -200,18 +139,7 @@ app.post('/api/chat', async (req, res) => {
     } catch (error) {
         console.error('Chat API Error:', error);
         
-        // If we have a conversation ID, mark it as having an error
-        if (conversationId) {
-            try {
-                await updateConversation(conversationId, {
-                    hasError: true,
-                    lastError: error.message,
-                    lastActivity: new Date()
-                });
-            } catch (fbError) {
-                console.error('Error updating conversation with error status:', fbError);
-            }
-        }
+        // TODO: Replace this with new backend logic for conversations
         
         // Return a user-friendly error message
         res.status(500).json({
