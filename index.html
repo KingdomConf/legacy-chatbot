@@ -34,8 +34,7 @@
         }
 
         .chat-container.minimized {
-            height: 60px;
-            cursor: pointer;
+            display: none;
         }
 
         .chat-header {
@@ -196,6 +195,34 @@
             display: none;
         }
 
+        .chat-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s ease;
+            z-index: 1000;
+        }
+
+        .chat-toggle-btn svg {
+            fill: white;
+            width: 24px;
+            height: 24px;
+        }
+
+        .chat-toggle-btn:hover {
+            background: #5a6fd8;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -215,10 +242,10 @@
             }
             
             .chat-container.minimized {
-                height: 60px;
-                width: 300px;
-                border-radius: 20px;
-                position: fixed;
+                display: none;
+            }
+
+            .chat-toggle-btn {
                 bottom: 20px;
                 right: 20px;
             }
@@ -250,6 +277,11 @@
             </button>
         </div>
     </div>
+    <button class="chat-toggle-btn" id="chatToggleBtn">
+        <svg viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+    </button>
 
     <script>
         class LegacyBot {
@@ -272,6 +304,8 @@
                 this.messageInput = document.getElementById('messageInput');
                 this.sendBtn = document.getElementById('sendBtn');
                 this.minimizeBtn = document.getElementById('minimizeBtn');
+                this.chatToggleBtn = document.getElementById('chatToggleBtn');
+                this.chatToggleBtn.style.display = 'none';
             }
 
             bindEventListeners() {
@@ -284,6 +318,7 @@
                 });
 
                 this.minimizeBtn.addEventListener('click', () => this.toggleMinimize());
+                this.chatToggleBtn.addEventListener('click', () => this.toggleMinimize());
                 this.chatContainer.addEventListener('click', (e) => {
                     if (this.isMinimized && e.target === this.chatContainer) {
                         this.toggleMinimize();
@@ -293,12 +328,12 @@
 
             toggleMinimize() {
                 this.isMinimized = !this.isMinimized;
-                this.chatContainer.classList.toggle('minimized', this.isMinimized);
-                this.chatMessages.classList.toggle('hidden', this.isMinimized);
-                this.chatInput.classList.toggle('hidden', this.isMinimized);
-                this.minimizeBtn.textContent = this.isMinimized ? '+' : '−';
-                
-                if (!this.isMinimized) {
+                if (this.isMinimized) {
+                    this.chatContainer.classList.add('minimized');
+                    this.chatToggleBtn.style.display = 'flex';
+                } else {
+                    this.chatContainer.classList.remove('minimized');
+                    this.chatToggleBtn.style.display = 'none';
                     this.messageInput.focus();
                     this.scrollToBottom();
                 }
