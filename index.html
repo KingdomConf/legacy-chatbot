@@ -252,6 +252,32 @@
       box-shadow: 0 6px 20px rgba(67, 17, 68, 0.4);
     }
 
+    /* Send Conversation Button Styles */
+    .send-conversation-btn {
+      background: linear-gradient(135deg, #b91f4a 0%, #e3642f 100%);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.2s ease;
+      position: absolute;
+      left: 20px;
+    }
+
+    .send-conversation-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(185, 31, 74, 0.3);
+    }
+
+    .send-conversation-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     @keyframes pulse {
       0%, 100% { 
         transform: scale(1);
@@ -298,12 +324,18 @@
         font-size: 12px;
         padding: 8px 16px;
       }
+
+      .send-conversation-btn {
+        font-size: 10px;
+        padding: 6px 10px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="chat-container" id="chatContainer">
     <div class="chat-header">
+      <button class="send-conversation-btn" id="sendConversationBtn">📧 Send</button>
       <h2>LegacyBot - Legacy Studio Co.</h2>
       <button class="minimize-btn" id="minimizeBtn">−</button>
     </div>
@@ -336,13 +368,26 @@
     class LegacyBot {
       constructor() {
         this.apiUrl = 'https://legacy-bot-osdp.onrender.com/api/chat';
+        this.webhookUrl = 'https://hook.us2.make.com/l6r3o8pnvlaypoghpw5xpw15xqfq18rm';
         this.threadId = localStorage.getItem('legacybot-thread-id');
         this.isMinimized = true;
         this.isTyping = false;
+        this.conversationHistory = [];
+
+        // Load existing conversation history from localStorage
+        const savedHistory = localStorage.getItem('legacybot-conversation');
+        if (savedHistory) {
+          this.conversationHistory = JSON.parse(savedHistory);
+        }
 
         this.initializeElements();
         this.bindEvents();
         this.minimizeChat();
+        
+        // Add initial bot message to history if not already there
+        if (this.conversationHistory.length === 0) {
+          this.addToHistory("Hi there! I'm LegacyBot from Legacy Studio Co. What can I help you with?", 'bot');
+        }
       }
 
       initializeElements() {
@@ -353,6 +398,7 @@
         this.minimizeBtn = document.getElementById('minimizeBtn');
         this.chatToggleContainer = document.getElementById('chatToggleContainer');
         this.chatToggleBtn = document.getElementById('chatToggleBtn');
+        this.sendConversationBtn = document.getElementById('sendConversationBtn');
       }
 
       bindEvents() {
@@ -366,12 +412,31 @@
 
         this.minimizeBtn.addEventListener('click', () => this.minimizeChat());
         this.chatToggleContainer.addEventListener('click', () => this.expandChat());
+        this.sendConversationBtn.addEventListener('click', () => this.sendConversationToWebhook());
+      }
+
+      addToHistory(message, sender) {
+        const timestamp = new Date().toLocaleString();
+        this.conversationHistory.push({
+          message: message,
+          sender: sender,
+          timestamp: timestamp
+        });
+        
+        // Save to localStorage
+        localStorage.setItem('legacybot-conversation', JSON.stringify(this.conversationHistory));
       }
 
       minimizeChat() {
         this.chatContainer.classList.add('minimized');
         this.chatToggleContainer.style.display = 'flex';
         this.isMinimized = true;
+        
+        // Auto-send conversation when minimized (if there are user messages)
+        const hasUserMessages = this.conversationHistory.some(msg => msg.sender === 'user');
+        if (hasUserMessages) {
+          this.sendConversationToWebhook();
+        }
       }
 
       expandChat() {
@@ -387,6 +452,7 @@
         if (!message || this.isTyping) return;
 
         this.addMessage(message, 'user');
+        this.addToHistory(message, 'user');
         this.messageInput.value = '';
         this.messageInput.disabled = true;
         this.sendBtn.disabled = true;
@@ -406,23 +472,68 @@
             this.threadId = data.threadId;
             localStorage.setItem('legacybot-thread-id', this.threadId);
             this.addMessage(data.message, 'bot');
-            // Send to Make.com webhook
-            fetch('https://hook.us2.make.com/l6r3o8pnvlaypoghpw5xpw15xqfq18rm', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userMessage: message, botResponse: data.message })
-            }).catch(err => console.error('Webhook error:', err));
+            this.addToHistory(data.message, 'bot');
           } else {
             throw new Error(data.error || 'Unknown error');
           }
         } catch (err) {
           console.error('Error:', err);
-          this.addMessage('Error connecting to assistant.', 'bot');
+          const errorMsg = 'Error connecting to assistant.';
+          this.addMessage(errorMsg, 'bot');
+          this.addToHistory(errorMsg, 'bot');
         } finally {
           this.hideTypingIndicator();
           this.messageInput.disabled = false;
           this.sendBtn.disabled = false;
           this.messageInput.focus();
+        }
+      }
+
+      async sendConversationToWebhook() {
+        if (this.conversationHistory.length <= 1) {
+          alert('No conversation to send yet!');
+          return;
+        }
+
+        this.sendConversationBtn.disabled = true;
+        this.sendConversationBtn.textContent = '📧 Sending...';
+
+        try {
+          // Format conversation for email
+          const conversationText = this.conversationHistory.map(msg => {
+            return `[${msg.timestamp}] ${msg.sender.toUpperCase()}: ${msg.message}`;
+          }).join('\n\n');
+
+          const webhookData = {
+            subject: `LegacyBot Conversation - ${new Date().toLocaleDateString()}`,
+            conversation: conversationText,
+            timestamp: new Date().toISOString(),
+            threadId: this.threadId || 'No thread ID',
+            messageCount: this.conversationHistory.length,
+            website: window.location.href
+          };
+
+          const response = await fetch(this.webhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookData)
+          });
+
+          if (response.ok) {
+            this.addMessage('✅ Conversation sent successfully!', 'bot');
+            this.addToHistory('✅ Conversation sent successfully!', 'bot');
+          } else {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } catch (err) {
+          console.error('Webhook error:', err);
+          this.addMessage('❌ Failed to send conversation. Please try again.', 'bot');
+          this.addToHistory('❌ Failed to send conversation. Please try again.', 'bot');
+        } finally {
+          this.sendConversationBtn.disabled = false;
+          this.sendConversationBtn.textContent = '📧 Send';
         }
       }
 
