@@ -253,23 +253,29 @@
     }
 
     /* Send Conversation Button Styles */
+    .send-conversation-container {
+      background: #f8f9fa;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid #e9ecef;
+    }
+
     .send-conversation-btn {
       background: linear-gradient(135deg, #b91f4a 0%, #e3642f 100%);
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 15px;
-      font-size: 12px;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
-      margin-left: 10px;
       transition: all 0.2s ease;
-      position: absolute;
-      left: 20px;
     }
 
     .send-conversation-btn:hover {
       transform: scale(1.05);
-      box-shadow: 0 2px 8px rgba(185, 31, 74, 0.3);
+      box-shadow: 0 4px 12px rgba(185, 31, 74, 0.3);
     }
 
     .send-conversation-btn:disabled {
@@ -326,8 +332,8 @@
       }
 
       .send-conversation-btn {
-        font-size: 10px;
-        padding: 6px 10px;
+        font-size: 12px;
+        padding: 8px 16px;
       }
     }
   </style>
@@ -335,7 +341,6 @@
 <body>
   <div class="chat-container" id="chatContainer">
     <div class="chat-header">
-      <button class="send-conversation-btn" id="sendConversationBtn">📧 Send</button>
       <h2>LegacyBot - Legacy Studio Co.</h2>
       <button class="minimize-btn" id="minimizeBtn">−</button>
     </div>
@@ -343,6 +348,9 @@
       <div class="message bot">
         <div class="message-bubble">Hi there! I'm LegacyBot from Legacy Studio Co. What can I help you with?</div>
       </div>
+    </div>
+    <div class="send-conversation-container">
+      <button class="send-conversation-btn" id="sendConversationBtn">✅ All Done</button>
     </div>
     <div class="chat-input" id="chatInput">
       <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
@@ -496,7 +504,7 @@
         }
 
         this.sendConversationBtn.disabled = true;
-        this.sendConversationBtn.textContent = '📧 Sending...';
+        this.sendConversationBtn.textContent = '⏳ Sending...';
 
         try {
           // Format conversation for email
@@ -533,7 +541,7 @@
           this.addToHistory('❌ Failed to send conversation. Please try again.', 'bot');
         } finally {
           this.sendConversationBtn.disabled = false;
-          this.sendConversationBtn.textContent = '📧 Send';
+          this.sendConversationBtn.textContent = '✅ All Done';
         }
       }
 
