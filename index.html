@@ -196,32 +196,62 @@
       cursor: not-allowed;
     }
 
-    .chat-toggle-btn {
+    .chat-toggle-container {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: transparent;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      cursor: pointer;
       display: none;
       align-items: center;
-      justify-content: center;
-      box-shadow: none;
-      transition: background 0.2s ease;
+      gap: 15px;
       z-index: 1001;
     }
 
+    .chat-toggle-text {
+      background: linear-gradient(135deg, #210e31 0%, #431144 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 15px rgba(67, 17, 68, 0.3);
+      white-space: nowrap;
+      animation: pulse 2s infinite;
+    }
+
+    .chat-toggle-btn {
+      background: linear-gradient(135deg, #210e31 0%, #431144 100%);
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(67, 17, 68, 0.3);
+      transition: all 0.3s ease;
+    }
+
     .chat-toggle-btn svg {
-      fill: #667eea;
-      width: 24px;
-      height: 24px;
+      fill: white;
+      width: 28px;
+      height: 28px;
     }
 
     .chat-toggle-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(67, 17, 68, 0.4);
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(67, 17, 68, 0.3);
+      }
+      50% { 
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(67, 17, 68, 0.4);
+      }
     }
 
     @keyframes fadeIn {
@@ -248,9 +278,16 @@
         opacity: 0 !important;
       }
 
-      .chat-toggle-btn {
+      .chat-toggle-container {
         bottom: 20px;
         right: 20px;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .chat-toggle-text {
+        font-size: 12px;
+        padding: 8px 16px;
       }
     }
   </style>
@@ -277,11 +314,14 @@
     </div>
   </div>
 
-  <button class="chat-toggle-btn" id="chatToggleBtn">
-    <svg viewBox="0 0 24 24">
-      <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-    </svg>
-  </button>
+  <div class="chat-toggle-container" id="chatToggleContainer">
+    <div class="chat-toggle-text">Need to chat? Let's talk about leaving your legacy</div>
+    <button class="chat-toggle-btn" id="chatToggleBtn">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+      </svg>
+    </button>
+  </div>
 
   <script>
     class LegacyBot {
@@ -302,6 +342,7 @@
         this.messageInput = document.getElementById('messageInput');
         this.sendBtn = document.getElementById('sendBtn');
         this.minimizeBtn = document.getElementById('minimizeBtn');
+        this.chatToggleContainer = document.getElementById('chatToggleContainer');
         this.chatToggleBtn = document.getElementById('chatToggleBtn');
       }
 
@@ -315,18 +356,18 @@
         });
 
         this.minimizeBtn.addEventListener('click', () => this.minimizeChat());
-        this.chatToggleBtn.addEventListener('click', () => this.expandChat());
+        this.chatToggleContainer.addEventListener('click', () => this.expandChat());
       }
 
       minimizeChat() {
         this.chatContainer.classList.add('minimized');
-        this.chatToggleBtn.style.display = 'flex';
+        this.chatToggleContainer.style.display = 'flex';
         this.isMinimized = true;
       }
 
       expandChat() {
         this.chatContainer.classList.remove('minimized');
-        this.chatToggleBtn.style.display = 'none';
+        this.chatToggleContainer.style.display = 'none';
         this.isMinimized = false;
         this.messageInput.focus();
         this.scrollToBottom();
