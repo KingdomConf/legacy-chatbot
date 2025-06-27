@@ -406,6 +406,12 @@
             this.threadId = data.threadId;
             localStorage.setItem('legacybot-thread-id', this.threadId);
             this.addMessage(data.message, 'bot');
+            // Send to Make.com webhook
+            fetch('https://hook.us2.make.com/l6r3o8pnvlaypoghpw5xpw15xqfq18rm', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userMessage: message, botResponse: data.message })
+            }).catch(err => console.error('Webhook error:', err));
           } else {
             throw new Error(data.error || 'Unknown error');
           }
