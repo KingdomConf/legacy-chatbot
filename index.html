@@ -33,7 +33,7 @@
       z-index: 1000;
     }
 
-    /* ✅ Complete transparency when minimized - no background, shadow, border, or visibility */
+    /* ✅ Complete transparency when minimized */
     .chat-container.minimized {
       display: none !important;
       visibility: hidden !important;
@@ -45,20 +45,25 @@
       width: 0 !important;
       height: 0 !important;
       pointer-events: none !important;
+      transition: none !important;
     }
 
     .chat-header {
       background: linear-gradient(135deg, #210e31 0%, #431144 100%);
       color: white;
-      padding: 20px;
+      padding: 15px 20px;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      position: relative;
     }
 
     .chat-header h2 {
       font-size: 18px;
       font-weight: 600;
+      text-align: center;
+      line-height: 1;
+      margin: 0;
     }
 
     .minimize-btn {
@@ -73,6 +78,8 @@
       align-items: center;
       justify-content: center;
       transition: background 0.2s ease;
+      position: absolute;
+      right: 20px;
     }
 
     .minimize-btn:hover {
@@ -203,6 +210,7 @@
       right: 20px;
       display: none;
       align-items: center;
+      flex-direction: row;
       gap: 15px;
       z-index: 1001;
     }
@@ -282,7 +290,7 @@
       .chat-toggle-container {
         bottom: 20px;
         right: 20px;
-        flex-direction: column;
+        flex-direction: row;
         gap: 10px;
       }
 
@@ -316,7 +324,7 @@
   </div>
 
   <div class="chat-toggle-container" id="chatToggleContainer">
-    <div class="chat-toggle-text">Let's talk about leaving your legacy</div>
+    <div class="chat-toggle-text">Need to chat? Let's talk about leaving your legacy</div>
     <button class="chat-toggle-btn" id="chatToggleBtn">
       <svg viewBox="0 0 24 24">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
