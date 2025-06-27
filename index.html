@@ -22,7 +22,7 @@
       height: 600px;
       background: white;
       border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -33,14 +33,18 @@
       z-index: 1000;
     }
 
-    /* ✅ Full shadow removal when minimized */
+    /* ✅ Complete transparency when minimized - no background, shadow, border, or visibility */
     .chat-container.minimized {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
       background: transparent !important;
       box-shadow: none !important;
+      border: none !important;
       border-radius: 0 !important;
-      opacity: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
       pointer-events: none !important;
-      transition: none !important;
     }
 
     .chat-header {
@@ -240,8 +244,8 @@
 
       .chat-container.minimized {
         display: none !important;
-        visibility: hidden;
-        opacity: 0;
+        visibility: hidden !important;
+        opacity: 0 !important;
       }
 
       .chat-toggle-btn {
